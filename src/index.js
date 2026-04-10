@@ -20,6 +20,39 @@ async function start() {
     Resource: AdminJSSequelize.Resource,
   });
 
+  // --- Load API Router & Middlewares for Plugins ---
+  const apiRouter = require('./routes/api');
+  const authorizeApi = require('./middleware/authorizeApi');
+  const auth = passport.authenticate('jwt', { session: false });
+  const { DataTypes } = require('./config/database');
+
+  // --- Load Plugins ---
+  const pluginConfig = require('./config/plugins');
+  const pluginResources = [];
+
+  for (const [pluginName, settings] of Object.entries(pluginConfig)) {
+    if (settings.enabled) {
+      try {
+        const plugin = require(`./plugins/${pluginName}`);
+        // Plugins can now define models, routes, and admin resources
+        const result = await plugin(app, {
+          config: settings.config || {},
+          apiRouter,
+          auth,
+          authorizeApi,
+          sequelize,
+          DataTypes
+        });
+
+        if (result && result.adminResources) {
+          pluginResources.push(...result.adminResources);
+        }
+      } catch (err) {
+        console.error(`[Plugin Loader] Failed to load plugin "${pluginName}":`, err.message);
+      }
+    }
+  }
+
   const adminJs = new AdminJS({
     resources: [
       AdminUser,
@@ -98,6 +131,7 @@ async function start() {
       Applicant,
       Offer,
       Appointment,
+      ...pluginResources // Inject plugin-specific resources here
     ],
     rootPath: '/admin',
   });
@@ -114,15 +148,15 @@ async function start() {
     cookiePassword: process.env.COOKIE_PASSWORD || 'some-secret-password-longer-than-32-chars',
   });
 
-  // --- 2. API Routes (from centralized router) ---
-  const apiRouter = require('./routes/api');
-
   // Middleware order matters: passport -> routes
   app.use(passport.initialize()); 
   app.use(apiRouter.routes());
   app.use(apiRouter.allowedMethods());
   app.use(adminRouter.routes());
   app.use(adminRouter.allowedMethods());
+
+  // Ensure database tables exist (important for dynamic plugin models)
+  await sequelize.sync();
 
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, async () => {
