@@ -94,13 +94,11 @@ module.exports = {
 
   // GET /api/auth/me (Protected)
   async me(ctx) {
-    console.log('Authorization check:', { user: ctx.state.user });
     try {
       const user = await ApiUser.findByPk(ctx.state.user.id, {
         attributes: { exclude: ['password'] },
         include: [ApiRole],
       });
-      console.log('Authorization check:', { user: user });
 
       ctx.status = 200;
       ctx.body = { user };

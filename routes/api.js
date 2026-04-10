@@ -15,6 +15,25 @@ const { koaBody } = require('koa-body');
 const router = new Router({ prefix: '/api' });
 router.use(koaBody({ multipart: true }));
 
+// Apply Rate Limiting
+const ratelimit = require('koa-ratelimit');
+const rateLimitDb = new Map();
+
+router.use(ratelimit({
+  driver: 'memory',
+  db: rateLimitDb,
+  duration: 60000, // 1 minute
+  errorMessage: 'Too many requests, please try again later',
+  id: (ctx) => ctx.ip,
+  headers: {
+    remaining: 'Rate-Limit-Remaining',
+    reset: 'Rate-Limit-Reset',
+    total: 'Rate-Limit-Total'
+  },
+  max: 100, // max requests per minute per IP
+  disableHeader: false
+}));
+
 // Helper: JWT auth middleware shorthand
 const auth = passport.authenticate('jwt', { session: false });
 

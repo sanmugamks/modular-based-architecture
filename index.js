@@ -21,8 +21,84 @@ async function start() {
   });
 
   const adminJs = new AdminJS({
-    databases: [sequelize],
-    resources: [AdminUser, ApiUser, Negotiator, Property, Applicant, Offer, Appointment],
+    resources: [
+      AdminUser,
+      {
+        resource: ApiUser,
+        options: {
+          properties: {
+            // Completely hide the actual database password field everywhere
+            password: {
+              isVisible: false,
+            },
+            // Create a virtual property that is only visible on the edit/new forms
+            newPassword: {
+              type: 'password',
+              isVisible: { list: false, filter: false, show: false, edit: true },
+            },
+          },
+          actions: {
+            new: {
+              before: async (request) => {
+                if (request.payload && request.payload.newPassword) {
+                  const encryptedPassword = await argon2.hash(request.payload.newPassword);
+                  return {
+                    ...request,
+                    payload: {
+                      ...request.payload,
+                      password: encryptedPassword,
+                    },
+                  };
+                }
+                return request;
+              },
+            },
+            edit: {
+              before: async (request) => {
+                if (request.method === 'post' && request.payload) {
+                  const { newPassword, ...otherParams } = request.payload;
+                  
+                  if (newPassword && newPassword.trim() !== '') {
+                    const encryptedPassword = await argon2.hash(newPassword);
+                    return {
+                      ...request,
+                      payload: {
+                        ...otherParams,
+                        password: encryptedPassword,
+                      },
+                    };
+                  } else {
+                    return {
+                      ...request,
+                      payload: otherParams,
+                    };
+                  }
+                }
+                return request;
+              },
+              after: async (response) => {
+                // When rendering the edit form (or returning data), remove the password field entirely
+                if (response.record && response.record.params) {
+                  // AdminJS will render an empty field if the value is missing from params
+                  delete response.record.params.password;
+                  delete response.record.params.newPassword;
+                }
+                return response;
+              },
+            },
+          },
+        },
+      },
+      AdminRole,
+      AdminPermission,
+      ApiRole,
+      ApiPermission,
+      Negotiator,
+      Property,
+      Applicant,
+      Offer,
+      Appointment,
+    ],
     rootPath: '/admin',
   });
 
