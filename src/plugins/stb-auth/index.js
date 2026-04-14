@@ -7,7 +7,7 @@ const server = require('./server');
  * Main entry point for stb-auth plugin.
  * Handles Identity, Authentication, and RBAC (API and Admin).
  */
-module.exports = async (app, { config, apiRouter, sequelize, DataTypes }) => {
+module.exports = async (app, { config, apiRouter, sequelize, DataTypes, extension }) => {
   console.log(`[Plugin: stb-auth] Initializing...`);
 
   // 1. Initialize Models (API and Admin)
@@ -16,23 +16,33 @@ module.exports = async (app, { config, apiRouter, sequelize, DataTypes }) => {
   // 2. Initialize Services (Passport)
   const passport = server.services.passportService({ models, config });
   
-  // 3. Initialize Middlewares
+  // 3. Initialize Shared Context Middlewares
   const auth = passport.authenticate('jwt', { session: false });
   const authorizeApi = server.middlewares.authorizeApi({ models });
 
-  // 4. Shared Context
+  // Share these with the core app context for other plugins to use
   app.context.auth = auth;
   app.context.authorizeApi = authorizeApi;
 
-  // 5. Initialize Controllers
-  const authController = server.controllers.authController({ models, config });
+  // 4. Initialize Controllers via factories
+  const context = { models, config };
+  const controllers = {};
+  for (const [name, factory] of Object.entries(server.controllers)) {
+    controllers[name] = factory(context);
+  }
+
+  // 5. Apply Extension if available (allows project-level overrides)
+  if (extension) {
+    extension({ controllers, models, config });
+  }
 
   // 6. Register Routes
-  server.routes(apiRouter, { authController }, { auth, authorizeApi });
+  // Note: We pass the initialized controllers and middlewares
+  server.routes(apiRouter, controllers, { auth, authorizeApi });
 
   console.log('[Plugin: stb-auth] Initialized successfully.');
 
-  // 7. Return metadata
+  // 7. Return metadata for AdminJS and model registry
   return {
     models, 
     middlewares: { auth, authorizeApi },

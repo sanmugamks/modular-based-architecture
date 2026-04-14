@@ -1,24 +1,19 @@
 'use strict';
 
-const controllers = {
-  authController: require('./controllers/AuthController')
-};
-
+const controllers = require('./controllers');
 const models = require('./models');
+const routes = require('./routes');
+const middlewares = {
+  authorizeApi: require('./middleware/authorizeApi')
+};
 const services = {
   passportService: require('./services/PassportService')
 };
 
-const middlewares = {
-  authorizeApi: require('./middleware/authorizeApi')
-};
-
-const routes = require('./routes');
-
 module.exports = {
   controllers,
   models,
-  services,
+  routes,
   middlewares,
-  routes
+  services
 };

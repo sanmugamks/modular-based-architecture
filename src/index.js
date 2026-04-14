@@ -1,6 +1,8 @@
 require('dotenv').config();
 const Koa = require('koa');
 const argon2 = require('argon2');
+const errorHandler = require('./middleware/errorHandler');
+const logger = require('koa-logger');
 // Database Models
 const coreModels = require('./models');
 const { sequelize } = coreModels;
@@ -23,6 +25,8 @@ async function start() {
   const allModels = { ...coreModels };
 
   // --- Load API Router & Base Middlewares ---
+  app.use(errorHandler); // Catch errors from all downstream middlewares/plugins
+  app.use(logger());
   const apiRouter = require('./routes/api');
   const { DataTypes } = require('./config/database');
 
