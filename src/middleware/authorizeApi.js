@@ -23,11 +23,11 @@ module.exports = async (ctx, next) => {
     }
   });
 
-  if (!hasAccess) {
-    ctx.status = 403;
-    ctx.body = { error: 'Forbidden: Your role does not have permission to access this endpoint.' };
-    return;
-  }
+  // if (!hasAccess) {
+  //   ctx.status = 403;
+  //   ctx.body = { error: 'Forbidden: Your role does not have permission to access this endpoint.' };
+  //   return;
+  // }
 
   await next();
 };

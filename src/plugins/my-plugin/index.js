@@ -1,33 +1,41 @@
-const NoteModel = require('./models/Note');
-const NoteService = require('./services/NoteService');
-const NoteController = require('./controllers/NoteController');
-const registerRoutes = require('./routes');
+'use strict';
 
-module.exports = async (app, { config, apiRouter, auth, authorizeApi, sequelize, DataTypes }) => {
+const server = require('./server');
+const config = require('./config');
+
+/**
+ * Main entry point for the plugin.
+ * Following Strapi-like structure but adapted for Koa POC.
+ */
+module.exports = async (app, { config: userConfig, apiRouter, auth, authorizeApi, sequelize, DataTypes }) => {
   console.log(`[Plugin: my-plugin] Initializing Standardized Architecture...`);
 
-  // 1. Initialize Model
-  const PluginNote = NoteModel(sequelize, DataTypes);
+  // 1. Setup Configuration
+  // Merge default config with user-provided config
+  const pluginConfig = { ...config.default, ...userConfig };
 
-  // 2. Initialize Service
-  const service = NoteService(PluginNote);
+  // 2. Initialize Models
+  const PluginNote = server.models.Note(sequelize, DataTypes);
 
-  // 3. Initialize Controller
-  const controller = NoteController(service);
+  // 3. Initialize Services
+  const service = server.services.NoteService(PluginNote);
 
-  // 4. Register Routes
-  registerRoutes(apiRouter, auth, authorizeApi, controller);
+  // 4. Initialize Controllers
+  const controller = server.controllers.NoteController(service);
+
+  // 5. Register Routes
+  server.routes(apiRouter, auth, authorizeApi, controller);
 
   // Example: Attach a custom context property
   app.context.myPlugin = {
-    getMessage: () => config.message || 'No message configured',
-    service, // Expose service to the app context if needed
+    config: pluginConfig,
+    service, 
     model: PluginNote
   };
 
   console.log('[Plugin: my-plugin] Architecture initialized successfully.');
 
-  // 5. Return metadata for AdminJS registration
+  // 6. Return metadata for AdminJS registration or other hooks
   return {
     adminResources: [
       {
