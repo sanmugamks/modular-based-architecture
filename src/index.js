@@ -33,7 +33,29 @@ async function start() {
   for (const [pluginName, settings] of Object.entries(pluginConfig)) {
     if (settings.enabled) {
       try {
-        const plugin = require(`./plugins/${pluginName}`);
+        let plugin;
+        try {
+          // 1. Try to load from node_modules first (for future NPM package support)
+          plugin = require(pluginName);
+        } catch (e) {
+          try {
+            // 2. Fallback to local plugins folder
+            plugin = require(`./plugins/${pluginName}`);
+          } catch (localErr) {
+            throw new Error(`Plugin "${pluginName}" not found in node_modules or local directory.`);
+          }
+        }
+
+        // --- Check for Extensions ---
+        const path = require('path');
+        const fs = require('fs');
+        const extensionPath = path.join(__dirname, 'extensions', pluginName, 'server', 'index.js');
+        let extension = null;
+        if (fs.existsSync(extensionPath)) {
+          extension = require(extensionPath);
+          console.log(`[Plugin Loader] Grouping extension for "${pluginName}"`);
+        }
+
         // Plugins can now define models, routes, and admin resources
         const result = await plugin(app, {
           config: settings.config || {},
@@ -41,7 +63,8 @@ async function start() {
           auth,
           authorizeApi,
           sequelize,
-          DataTypes
+          DataTypes,
+          extension // Pass extension to the plugin
         });
 
         if (result && result.adminResources) {

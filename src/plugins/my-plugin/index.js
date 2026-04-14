@@ -7,12 +7,17 @@ const config = require('./config');
  * Main entry point for the plugin.
  * Following Strapi-like structure but adapted for Koa POC.
  */
-module.exports = async (app, { config: userConfig, apiRouter, auth, authorizeApi, sequelize, DataTypes }) => {
+module.exports = async (app, { config: userConfig, apiRouter, auth, authorizeApi, sequelize, DataTypes, extension }) => {
   console.log(`[Plugin: my-plugin] Initializing Standardized Architecture...`);
 
   // 1. Setup Configuration
-  // Merge default config with user-provided config
   const pluginConfig = { ...config.default, ...userConfig };
+
+  // --- Apply Extensions ---
+  // If an extension function is provided, allow it to mutate the server object (controllers, services, etc.)
+  if (extension && typeof extension === 'function') {
+    extension(server);
+  }
 
   // 2. Initialize Models
   const PluginNote = server.models.Note(sequelize, DataTypes);
