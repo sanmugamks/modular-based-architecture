@@ -2,13 +2,24 @@
  * Plugin Configuration
  * 
  * To enable a plugin, add its directory name as a key with `enabled: true`.
- * Custom configuration for the plugin can be added in the `config` object.
  */
 module.exports = {
+  'stb-auth': {
+    enabled: true,
+    config: {
+      jwtSecret: process.env.JWT_SECRET || 'very-secure-jwt-secret-key',
+    },
+  },
+  'stb-myaccount': {
+    enabled: true,
+    config: {
+      message: 'Business Domain Plugin',
+    },
+  },
   'my-plugin': {
     enabled: true,
     config: {
-      message: 'Hello from my custom plugin!',
+      message: 'Account Extensions Plugin',
     },
   },
 };

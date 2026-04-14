@@ -1,10 +1,9 @@
 require('dotenv').config();
 const Koa = require('koa');
 const argon2 = require('argon2');
-const passport = require('./middleware/passport');
-
 // Database Models
-const { sequelize, AdminUser, AdminRole, AdminPermission, ApiUser, ApiRole, ApiPermission, Negotiator, Property, Applicant, Offer, Appointment } = require('./models');
+const coreModels = require('./models');
+const { sequelize } = coreModels;
 
 const app = new Koa();
 app.keys = [process.env.COOKIE_PASSWORD || 'some-secret-password-longer-than-32-chars'];
@@ -20,10 +19,11 @@ async function start() {
     Resource: AdminJSSequelize.Resource,
   });
 
-  // --- Load API Router & Middlewares for Plugins ---
+  // --- Initialize Models Registry ---
+  const allModels = { ...coreModels };
+
+  // --- Load API Router & Base Middlewares ---
   const apiRouter = require('./routes/api');
-  const authorizeApi = require('./middleware/authorizeApi');
-  const auth = passport.authenticate('jwt', { session: false });
   const { DataTypes } = require('./config/database');
 
   // --- Load Plugins ---
@@ -60,12 +60,17 @@ async function start() {
         const result = await plugin(app, {
           config: settings.config || {},
           apiRouter,
-          auth,
-          authorizeApi,
+          auth: app.context.auth, // These will be assigned by stb-auth
+          authorizeApi: app.context.authorizeApi,
           sequelize,
           DataTypes,
-          extension // Pass extension to the plugin
+          extension
         });
+
+        // Register models from plugins into our global registry
+        if (result && result.models) {
+          Object.assign(allModels, result.models);
+        }
 
         if (result && result.adminResources) {
           pluginResources.push(...result.adminResources);
@@ -76,85 +81,13 @@ async function start() {
     }
   }
 
+  // --- Associations Phase ---
+  // Run late-binding associations between core models and plugin models
+  allModels.associateModels(allModels);
+
   const adminJs = new AdminJS({
     resources: [
-      AdminUser,
-      {
-        resource: ApiUser,
-        options: {
-          properties: {
-            // Completely hide the actual database password field everywhere
-            password: {
-              isVisible: false,
-            },
-            // Create a virtual property that is only visible on the edit/new forms
-            newPassword: {
-              type: 'password',
-              isVisible: { list: false, filter: false, show: false, edit: true },
-            },
-          },
-          actions: {
-            new: {
-              before: async (request) => {
-                if (request.payload && request.payload.newPassword) {
-                  const encryptedPassword = await argon2.hash(request.payload.newPassword);
-                  return {
-                    ...request,
-                    payload: {
-                      ...request.payload,
-                      password: encryptedPassword,
-                    },
-                  };
-                }
-                return request;
-              },
-            },
-            edit: {
-              before: async (request) => {
-                if (request.method === 'post' && request.payload) {
-                  const { newPassword, ...otherParams } = request.payload;
-                  
-                  if (newPassword && newPassword.trim() !== '') {
-                    const encryptedPassword = await argon2.hash(newPassword);
-                    return {
-                      ...request,
-                      payload: {
-                        ...otherParams,
-                        password: encryptedPassword,
-                      },
-                    };
-                  } else {
-                    return {
-                      ...request,
-                      payload: otherParams,
-                    };
-                  }
-                }
-                return request;
-              },
-              after: async (response) => {
-                // When rendering the edit form (or returning data), remove the password field entirely
-                if (response.record && response.record.params) {
-                  // AdminJS will render an empty field if the value is missing from params
-                  delete response.record.params.password;
-                  delete response.record.params.newPassword;
-                }
-                return response;
-              },
-            },
-          },
-        },
-      },
-      AdminRole,
-      AdminPermission,
-      ApiRole,
-      ApiPermission,
-      Negotiator,
-      Property,
-      Applicant,
-      Offer,
-      Appointment,
-      ...pluginResources // Inject plugin-specific resources here
+      ...pluginResources
     ],
     rootPath: '/admin',
   });
@@ -162,7 +95,12 @@ async function start() {
   // AdminJS Auth logic
   const adminRouter = AdminJSKoa.buildAuthenticatedRouter(adminJs, app, {
     authenticate: async (email, password) => {
-      const user = await AdminUser.findOne({ where: { email } });
+      // AdminUser is now provided by the stb-auth plugin
+      if (!allModels.AdminUser) {
+        console.error('AdminUser model not found. Ensure stb-auth plugin is loaded.');
+        return null;
+      }
+      const user = await allModels.AdminUser.findOne({ where: { email } });
       if (user && await argon2.verify(user.password, password)) {
         return user; 
       }
@@ -171,8 +109,7 @@ async function start() {
     cookiePassword: process.env.COOKIE_PASSWORD || 'some-secret-password-longer-than-32-chars',
   });
 
-  // Middleware order matters: passport -> routes
-  app.use(passport.initialize()); 
+  // Middleware order matters: routes
   app.use(apiRouter.routes());
   app.use(apiRouter.allowedMethods());
   app.use(adminRouter.routes());

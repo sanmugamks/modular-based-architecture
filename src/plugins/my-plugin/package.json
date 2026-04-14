@@ -1,17 +1,9 @@
 {
   "name": "@starberry/my-plugin",
   "version": "1.0.0",
-  "description": "Standardized Koa plugin for My Account",
+  "description": "Standardized Koa plugin for Account Extensions (Notes)",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [
-    "koa",
-    "strapi",
-    "plugin"
-  ],
-  "author": "Starberry",
-  "license": "ISC",
-  "dependencies": {}
+  "dependencies": {
+    "sequelize": "^6.37.2"
+  }
 }

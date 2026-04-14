@@ -1,0 +1,13 @@
+{
+  "name": "@starberry/stb-auth",
+  "version": "1.0.0",
+  "description": "Standardized authentication plugin for Koa POC",
+  "main": "index.js",
+  "dependencies": {
+    "jsonwebtoken": "^9.0.3",
+    "koa-passport": "^6.0.0",
+    "passport-jwt": "^4.0.1",
+    "passport-local": "^1.0.0",
+    "argon2": "^0.44.0"
+  }
+}
