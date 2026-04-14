@@ -22,4 +22,8 @@ module.exports = {
       message: 'Account Extensions Plugin',
     },
   },
+  'stb-email': {
+    enabled: true,
+    config: {},
+  },
 };

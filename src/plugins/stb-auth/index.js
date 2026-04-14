@@ -8,7 +8,8 @@ const server = require('./server');
  * Handles Identity, Authentication, and RBAC (API and Admin).
  */
 module.exports = async (app, { config, apiRouter, sequelize, DataTypes, extension }) => {
-  console.log(`[Plugin: stb-auth] Initializing...`);
+  // 0. Load Core Services (Could be replaced by a registry later)
+  const emailService = require('../../services/EmailService');
 
   // 1. Initialize Models (API and Admin)
   const models = server.models(sequelize, DataTypes);
@@ -33,7 +34,7 @@ module.exports = async (app, { config, apiRouter, sequelize, DataTypes, extensio
 
   // 5. Apply Extension if available (allows project-level overrides)
   if (extension) {
-    extension({ controllers, models, config });
+    extension({ controllers, models, config, services: { emailService } });
   }
 
   // 6. Register Routes

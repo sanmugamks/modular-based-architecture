@@ -74,28 +74,47 @@ module.exports = {
 Each plugin receives this `config` object during its initialization function.
 
 ---
-
+ 
 ## 🔄 Overwrite Options (Extension Mechanism)
-
+ 
 The extension mechanism allows developers to customize plugin behavior without altering the plugin source.
-
+ 
 ### How it works:
 1. Create a file at `src/extensions/<plugin-name>/server/index.js`.
-2. This file should export a function that receives the plugin's internal `controllers`, `models`, and `config`.
-3. You can use this to merge or replace controller methods.
-
+2. This file should export a function that receives the plugin's internal `controllers`, `models`, `config`, and `services`.
+3. You can use this to merge or replace controller methods and register model lifecycle hooks.
+ 
 **Example Extension (`src/extensions/stb-auth/server/index.js`):**
 ```javascript
-module.exports = ({ controllers }) => {
+module.exports = ({ controllers, models, services }) => {
+  const { ApiUser } = models;
+  const { emailService } = services;
+
+  // 1. Override a controller method
   const originalLogin = controllers.authController.login;
-  
-  // Override the login method
   controllers.authController.login = async (ctx) => {
     console.log('Intercepted login attempt!');
     return originalLogin(ctx);
   };
+
+  // 2. Register a Model Lifecycle Hook
+  ApiUser.addHook('afterCreate', async (user) => {
+    await emailService.sendEmail({
+      to: user.email,
+      subject: 'Welcome!',
+      text: 'Your account is ready.'
+    });
+  });
 };
 ```
+
+---
+
+## 🛠️ Core Services
+
+The application provides shared core services that can be used across plugins and extensions.
+
+- **EmailService**: Located in `src/services/EmailService.js`. Currently a mock service that logs to the console, designed to be easily replaced by a dedicated Email Plugin (e.g., Mailgun integration) in the future.
 
 ---
 
