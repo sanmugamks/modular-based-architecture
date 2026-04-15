@@ -1,5 +1,5 @@
 {
-  "name": "koa-myaccount-poc",
+  "name": "@sanmugamks/modular-based-architecture",
   "version": "1.0.0",
   "main": "src/index.js",
   "scripts": {
@@ -29,5 +29,11 @@
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
     "sequelize": "^6.37.8"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "repository": {
+    "url": "https://github.com/sanmugamks/modular-based-architecture.git"
   }
 }
