@@ -1,25 +1,44 @@
 name: Publish Package
 
-# Add these lines to tell GitHub when to run
 on:
+  push:
+    branches:
+      - main
   release:
-    types: [created] # Runs when you create a new Release
-  workflow_dispatch:   # Allows you to run it manually from the "Actions" tab
+    types: [created]
+  workflow_dispatch:
 
 jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       packages: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
           registry-url: 'https://npm.pkg.github.com'
           scope: '@sanmugamks'
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
       - run: npm ci
-      - run: npm publish
+
+      - name: Bump version
+        run: npm version patch -m "chore: bump version to %s [skip ci]"
+
+      - name: Push changes
+        run: git push --follow-tags
+
+      - name: Publish to GitHub Packages
+        run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
