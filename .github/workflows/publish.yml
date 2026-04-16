@@ -42,7 +42,8 @@ jobs:
         # Only bump version if we are on main, not on a release tag
         if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         run: |
-          git checkout package-lock.json
+          git reset --hard HEAD
+          git clean -fd
           npm version patch -m "chore: bump version to %s [skip ci]"
           git push --follow-tags
           
