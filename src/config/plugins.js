@@ -11,8 +11,10 @@ module.exports = {
     },
   },
   'stb-myaccount': {
+    path: '../plugins/stb-myaccount',
     enabled: true,
     config: {
+      hasOffer: false,
       message: 'Business Domain Plugin',
     },
   },

@@ -37,8 +37,8 @@ const associateModels = (allModels) => {
   Object.values(allModels).forEach(model => {
     if (model.prototype && typeof model.prototype.toJSON === 'function') {
       const originalToJSON = model.prototype.toJSON;
-      
-      model.prototype.toJSON = function() {
+
+      model.prototype.toJSON = function () {
         const data = originalToJSON.call(this);
         return sanitize.output(data, model);
       };
@@ -58,8 +58,6 @@ const associateModels = (allModels) => {
     ApiRole.hasMany(ApiUser);
     ApiUser.belongsTo(ApiRole);
   }
-
-  console.log("ApiUser => ", ApiUser.sequelize);
 
   // --- Admin Identity Relationships ---
   if (AdminRole && AdminPermission) {

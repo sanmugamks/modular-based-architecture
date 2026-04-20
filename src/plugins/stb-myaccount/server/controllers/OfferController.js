@@ -3,8 +3,10 @@
 /**
  * OfferController for stb-myaccount plugin
  */
-module.exports = ({ models }) => {
+module.exports = ({ models, config }) => {
   const { Offer, Property, Applicant, Negotiator } = models;
+
+  console.log("config => in controller   ", config);
 
   return {
     // GET /api/offers

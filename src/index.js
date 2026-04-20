@@ -10,6 +10,9 @@ const { sequelize } = coreModels;
 const app = new Koa();
 app.keys = [process.env.COOKIE_PASSWORD || 'some-secret-password-longer-than-32-chars'];
 
+// --- Global Plugin Registry ---
+app.context.plugins = {};
+
 async function start() {
   // ESM Imports
   const { default: AdminJS } = await import('adminjs');
@@ -60,9 +63,49 @@ async function start() {
           console.log(`[Plugin Loader] Grouping extension for "${pluginName}"`);
         }
 
+        // --- Merge Configurations ---
+        const _ = require('lodash');
+        let defaultConfig = plugin.defaultConfig || {};
+        
+        // 1. Try to load from {pluginPath}/config/index.js
+        let validator = null;
+        try {
+          const path = require('path');
+          const configPath = path.join(__dirname, 'plugins', pluginName, 'config', 'index.js');
+          if (require.resolve(configPath)) {
+            const externalConfig = require(configPath);
+            if (externalConfig && externalConfig.default) {
+              defaultConfig = _.merge({}, defaultConfig, externalConfig.default);
+            }
+            if (externalConfig && typeof externalConfig.validator === 'function') {
+              validator = externalConfig.validator;
+            }
+          }
+        } catch (e) {
+          // If no external config file, just use the one exported from index.js
+        }
+
+        const mergedConfig = _.merge({}, defaultConfig, settings.config || {});
+
+        // --- Validate Configuration ---
+        if (validator) {
+          try {
+            validator(mergedConfig);
+          } catch (valErr) {
+            throw new Error(`[Configuration Error] Plugin "${pluginName}": ${valErr.message}`);
+          }
+        }
+
+        // 2. Register in Global Context BEFORE initialization so it's accessible during boot
+        app.context.plugins[pluginName] = { 
+          config: mergedConfig,
+          instance: plugin,
+          name: pluginName
+        };
+
         // Plugins can now define models, routes, and admin resources
-        const result = await plugin(app, {
-          config: settings.config || {},
+        const result = await (plugin.default || plugin)(app, {
+          config: mergedConfig,
           apiRouter,
           auth: app.context.auth, // These will be assigned by stb-auth
           authorizeApi: app.context.authorizeApi,

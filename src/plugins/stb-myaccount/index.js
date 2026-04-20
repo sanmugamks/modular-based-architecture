@@ -6,8 +6,9 @@ const server = require('./server');
  * Main entry point for stb-myaccount plugin.
  * Handles core business domain entities and logic.
  */
-module.exports = async (app, { config, apiRouter, sequelize, DataTypes, extension, auth, authorizeApi }) => {
+const plugin = async (app, { config, apiRouter, sequelize, DataTypes, extension, auth, authorizeApi }) => {
   console.log(`[Plugin: stb-myaccount] Initializing...`);
+  console.log(`[Plugin: stb-myaccount] Config Received:`, JSON.stringify(config, null, 2));
 
   // 1. Initialize Models
   const models = server.models(sequelize, DataTypes);
@@ -57,3 +58,5 @@ module.exports = async (app, { config, apiRouter, sequelize, DataTypes, extensio
     ]
   };
 };
+
+module.exports = plugin;

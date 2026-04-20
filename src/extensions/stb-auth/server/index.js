@@ -12,6 +12,8 @@ module.exports = ({ controllers, models, config, services }) => {
   const { ApiUser } = models;
   const { DataTypes } = ApiUser.sequelize.Sequelize;
 
+  console.log("config => ", config);
+
   // --- Schema Extensions ---
   // Add project-specific custom fields to the ApiUser model
   ApiUser.rawAttributes.forename = {

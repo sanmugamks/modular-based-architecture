@@ -113,6 +113,6 @@ module.exports = ({ models, config }) => {
         ctx.status = 500;
         ctx.body = { error: 'Failed to fetch user profile' };
       }
-    },
+    }
   };
 };
