@@ -17,7 +17,7 @@ module.exports = (sequelize, DataTypes) => {
 
   const ApiUser = sequelize.define('ApiUser', {
     email: { type: DataTypes.STRING, allowNull: false, unique: true },
-    password: { type: DataTypes.STRING, allowNull: false }, // Hashed with Argon2
+    password: { type: DataTypes.STRING, allowNull: false, hidden: true }, // Hashed with Argon2
     contact_id: DataTypes.STRING,
     company_id: DataTypes.STRING
   });
@@ -35,7 +35,7 @@ module.exports = (sequelize, DataTypes) => {
 
   const AdminUser = sequelize.define('AdminUser', {
     email: { type: DataTypes.STRING, allowNull: false, unique: true },
-    password: { type: DataTypes.STRING, allowNull: false }
+    password: { type: DataTypes.STRING, allowNull: false, hidden: true }
   });
 
   // ============================

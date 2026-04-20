@@ -17,14 +17,12 @@ module.exports = ({ controllers, models, config, services }) => {
   ApiUser.rawAttributes.forename = {
     type: DataTypes.STRING,
     allowNull: true,
-    comment: 'Project specific field'
   };
   ApiUser.rawAttributes.surname = {
     type: DataTypes.STRING,
     allowNull: true,
-    comment: 'Project specific field'
   };
-  
+
   // Refresh attributes so Sequelize registers the newly added columns before syncing
   ApiUser.refreshAttributes();
 

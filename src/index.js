@@ -120,7 +120,7 @@ async function start() {
   app.use(adminRouter.allowedMethods());
 
   // Ensure database tables exist (important for dynamic plugin models)
-  await sequelize.sync();
+  await sequelize.sync({ alter: true });
 
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, async () => {

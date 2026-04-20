@@ -14,17 +14,40 @@ const { sequelize, DataTypes } = require('../config/database');
 // ============================
 // Associations (Late Binding Support)
 // ============================
+// todo: model filed override
+// Plugin inside plugin
+// Sanitize the password field, exclude fields option
+// use finall inside findone
 
 const associateModels = (allModels) => {
-  const { 
+  const {
     // Identity (stb-auth)
-    ApiUser, ApiRole, ApiPermission, 
+    ApiUser, ApiRole, ApiPermission,
     AdminUser, AdminRole, AdminPermission,
     // Business (stb-myaccount)
     Negotiator, Property, Applicant, Offer, Appointment,
     // Extensions (my-plugin)
     Note
   } = allModels;
+
+  const sanitize = require('../utils/sanitizer');
+
+  // --- Global Model Decoration ---
+  // Apply automatic sanitization to all models by overriding toJSON
+  Object.values(allModels).forEach(model => {
+    if (model.prototype && typeof model.prototype.toJSON === 'function') {
+      const originalToJSON = model.prototype.toJSON;
+      
+      model.prototype.toJSON = function() {
+        const data = originalToJSON.call(this);
+        return sanitize.output(data, model);
+      };
+
+      // Attach static sanitize methods for manual use (Strapi-style)
+      model.sanitizeInput = (data, options) => sanitize.input(data, model, options);
+      model.sanitizeOutput = (data, options) => sanitize.output(data, model, options);
+    }
+  });
 
   // --- API Identity Relationships ---
   if (ApiRole && ApiPermission) {
@@ -35,6 +58,8 @@ const associateModels = (allModels) => {
     ApiRole.hasMany(ApiUser);
     ApiUser.belongsTo(ApiRole);
   }
+
+  console.log("ApiUser => ", ApiUser.sequelize);
 
   // --- Admin Identity Relationships ---
   if (AdminRole && AdminPermission) {

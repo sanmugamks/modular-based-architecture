@@ -101,9 +101,10 @@ module.exports = ({ models, config }) => {
     async me(ctx) {
       try {
         const user = await ApiUser.findByPk(ctx.state.user.id, {
-          attributes: { exclude: ['password'] },
           include: [ApiRole],
         });
+
+        console.log("user => ", user);
 
         ctx.status = 200;
         ctx.body = { user };
