@@ -1,144 +1,139 @@
 # Koa MyAccount POC
 
-A modular, plugin-based Koa.js application designed to provide a flexible and extensible foundation for a "MyAccount" service. This project features a hybrid plugin loader, built-in identity management, and an integrated AdminJS dashboard.
+A modular, plugin-based Koa.js application designed as an extensible foundation for "MyAccount" services. Featuring a hybrid plugin loader, built-in identity management, template-based notifications, and a hardened security layer.
 
-## 🏗️ Architecture
+---
+
+## 🛠️ Technology Stack
+- **Core**: Koa.js (v3)
+- **Database**: Sequelize (MySQL/MariaDB)
+- **Auth**: Passport.js (JWT Strategy)
+- **UI**: AdminJS (Dashboard)
+- **Security**: Helmet, CORS, Rate-Limiting
+- **Logic**: Closure-based Modular Architecture
+
+---
+
+## 🏗️ Architecture & Core Principles
 
 The application is built on a **modular, plugin-driven architecture**. Instead of a monolithic structure, functionality is encapsulated within independent plugins.
 
-- **Core Application**: Located in `src/index.js`, it handles bootstrapping, global middleware, database synchronization, and the dynamic loading of plugins.
-- **Plugins**: Located in `src/plugins/`, each plugin is a self-contained module that can define its own models, controllers, services, routes, and AdminJS resources.
-- **Extensions**: Located in `src/extensions/`, this layer allows the project to override or augment plugin-level controllers and services without modifying the original plugin code.
-- **Models Registry**: A global registry that collects models from all enabled plugins, allowing for late-binding associations across different modules.
+### 1. Hybrid Plugin Loader
+Located in `src/index.js`, the loader follows a priority-based discovery mechanism:
+1. **NPM Modules**: Attempts to load the plugin from `node_modules` (e.g., `@sanmugamks/my-plugin`).
+2. **Local Plugins**: Falls back to the `src/plugins/` directory.
 
----
-
-## 🚀 Code Flow
-
-### 1. Bootstrap Phase (`src/index.js`)
-1. **Environment Config**: Loads variables from `.env`.
-2. **Database Initialization**: Connects to the database and initializes core models.
-3. **Hybrid Plugin Loader**: Iterates through `src/config/plugins.js`.
-   - Attempts to load the plugin from `node_modules` (supporting future NPM distribution).
-   - Falls back to the local `src/plugins/` directory.
-4. **Extension Check**: Checks if an extension exists for the specific plugin in `src/extensions/<plugin-name>/server/index.js`.
-5. **Plugin Initialization**: Calls the plugin's entry function, passing the application context, specific configuration, and any detected extension.
-6. **Model Registry**: Collects models returned by plugins into a global `allModels` object.
-
-### 2. Association Phase
-Once all plugins are loaded, `allModels.associateModels(allModels)` is called. This handles complex relationships (e.g., a "Note" in `my-plugin` belonging to an "Applicant" in `stb-myaccount`).
-
-### 3. Startup Phase
-- Initializes AdminJS with resources collected from plugins.
-- Binds routers (API and Admin).
-- Synchronizes the database schema.
-- Starts the Koa server.
-
----
-
-## 🔐 Auth Flow
-
-Authentication and Identity are handled by the `stb-auth` plugin.
-
-### Key Components:
-- **Models**: Defines `ApiUser`, `ApiRole`, `ApiPermission` (for end users) and `AdminUser`, `AdminRole`, `AdminPermission` (for internal administration).
-- **Strategy**: Uses **Passport.js** with a **JWT (JSON Web Token)** strategy.
-- **Context Middlewares**:
-  - `auth`: A standard JWT authentication check.
-  - `authorizeApi`: A granular permission-based check for API routes.
-
-### Login Process:
-1. User posts credentials to `/auth/login`.
-2. `stb-auth` verifies the user (using `argon2` for password hashing).
-3. A JWT is generated and returned.
-4. Subsequent requests must include the JWT in the `Authorization` header (`Bearer <token>`).
-
----
-
-## 🛠️ Plugin Options
-
-Plugins are managed via `src/config/plugins.js`. To enable a plugin and provide configuration:
-
+### 2. Global Registry (`app.context.plugins`)
+Each plugin registers its `models`, `services`, and `config` into the global context. This allows for **Cross-Plugin Service Discovery**:
 ```javascript
-module.exports = {
-  'stb-auth': {
-    enabled: true,
-    config: {
-      jwtSecret: process.env.JWT_SECRET,
-    },
-  },
-  // ...other plugins
-};
+// Example: Accessing the EmailService from an unrelated plugin
+const emailService = ctx.plugins['stb-email'].services.EmailService;
+await emailService.sendTemplate('welcome', { to: user.email });
 ```
 
-Each plugin receives this `config` object during its initialization function.
+### 3. Extension Mechanism (`src/extensions/`)
+Developers can override plugin behavior without modifying the core plugin source:
+- **Controllers**: Wrap or replace factory-initialized methods.
+- **Models**: Register additional lifecycle hooks (e.g., `afterCreate`).
+- **Schema**: Add dynamic attributes/fields to existing models.
 
 ---
- 
-## 🔄 Overwrite Options (Extension Mechanism)
- 
-The extension mechanism allows developers to customize plugin behavior without altering the plugin source.
- 
-### How it works:
-1. Create a file at `src/extensions/<plugin-name>/server/index.js`.
-2. This file should export a function that receives the plugin's internal `controllers`, `models`, `config`, and `services`.
-3. You can use this to merge or replace controller methods and register model lifecycle hooks.
- 
-**Example Extension (`src/extensions/stb-auth/server/index.js`):**
+
+## 🔐 Security & Production Hardening
+
+The application implements industry-standard security practices out-of-the-box:
+
+### 1. Hardened Middlewares
+- **Helmet**: Injected at the top level to set secure HTTP headers (CSP, XSS Protection, etc.).
+- **CORS**: Configured via `@koa/cors` for secure cross-origin communication.
+- **Rate Limiting**: Global and per-router rate limiting via `koa-ratelimit` to mitigate brute-force/DoS attacks.
+
+### 2. Environment Enforcement (Fail-Fast Policy)
+The application strictly requires the following environment variables. It will **refuse to boot** if they are missing or using insecure fallbacks:
+- `JWT_SECRET`: Used for signing authentication tokens.
+- `COOKIE_PASSWORD`: Used for AdminJS session encryption.
+
+### 3. Input Sanitization
+Built-in utilities (`src/utils/sanitizer.js`) prevent **Mass-Assignment** vulnerabilities by filtering request bodies against the model schema:
 ```javascript
-module.exports = ({ controllers, models, services }) => {
-  const { ApiUser } = models;
-  const { emailService } = services;
+// Example in AuthController.register
+const sanitizedInput = ApiUser.sanitizeInput(ctx.request.body);
+const user = await ApiUser.create(sanitizedInput);
+```
 
-  // 1. Override a controller method
-  const originalLogin = controllers.authController.login;
-  controllers.authController.login = async (ctx) => {
-    console.log('Intercepted login attempt!');
-    return originalLogin(ctx);
-  };
+---
 
-  // 2. Register a Model Lifecycle Hook
-  ApiUser.addHook('afterCreate', async (user) => {
-    await emailService.sendEmail({
-      to: user.email,
-      subject: 'Welcome!',
-      text: 'Your account is ready.'
-    });
+## 📧 Notification System (`stb-email`)
+
+The `stb-email` plugin provides a robust, template-based notification engine using **Lodash Templates**.
+
+### Usage Example:
+```javascript
+// Inside a service or controller
+const emailService = app.context.plugins['stb-email'].services.EmailService;
+
+await emailService.sendTemplate('offer-accepted', {
+  to: 'applicant@example.com',
+  applicantName: 'John Doe',
+  propertyTitle: 'The Shard, London'
+});
+```
+
+### Managing Templates:
+Templates are managed via **AdminJS** (`Email Templates` resource) or directly in the database.
+- **Slug**: Unique identifier (e.g., `welcome-email`).
+- **Subject/Body**: Support `<%= var %>` interpolation.
+
+---
+
+## 🛠️ Developer's Implementation Guide
+
+### Adding a New Plugin
+1. Create a directory in `src/plugins/my-new-plugin`.
+2. Follow the standard structure:
+   - `server/models/`: Export a Sequelize model factory.
+   - `server/services/`: Export a factory taking `{ models, config }`.
+   - `server/controllers/`: Export a factory taking `{ models, services, config }`.
+   - `index.js`: Initialization entry point.
+3. Enable it in `src/config/plugins.js`.
+
+### Extending an Existing Plugin
+To modify a plugin's behavior (e.g., `stb-auth`):
+1. Create `src/extensions/stb-auth/server/index.js`.
+2. Export a function:
+```javascript
+module.exports = ({ controllers, models, services, config }) => {
+  // Override or add hooks here
+  models.ApiUser.addHook('afterUpdate', async (user) => {
+    // Custom logic
   });
 };
 ```
 
 ---
 
-## 🛠️ Core Services
-
-The application provides shared core services that can be used across plugins and extensions.
-
-- **EmailService**: Located in `src/services/EmailService.js`. Currently a mock service that logs to the console, designed to be easily replaced by a dedicated Email Plugin (e.g., Mailgun integration) in the future.
-
----
-
-## ✨ Other Features
-
-### Dynamic AdminJS Dashboard
-Plugins can return an `adminResources` array. These are automatically registered with the AdminJS dashboard, providing an instant UI for managing plugin-specific data.
-
-### Standardized Folder Structure
-To maintain consistency, plugins and the core follow a similar layout:
-- `controllers/`: Request handling logic.
-- `services/`: Business logic and external integrations.
-- `models/`: Sequelize model definitions.
-- `routes/`: API endpoint definitions.
-- `config/`: Default plugin-level configuration.
-
-### Global Error Handling
-A centralized `errorHandler` middleware ensures that all errors (both from core and plugins) are caught and formatted consistently in the response.
-
----
-
 ## 📦 Getting Started
 
-1. **Install Dependencies**: `npm install`
-2. **Environment Variables**: Copy `.env.example` to `.env` and configure your database and secrets.
-3. **Run Development Server**: `npm run dev`
-4. **Access Dashboard**: Visit `http://localhost:3000/admin`
+1.  **Install Dependencies**: `npm install`
+2.  **Configure Environment**:
+    ```bash
+    cp .env.example .env
+    # Set DB_HOST, DB_USER, DB_PASS, JWT_SECRET, COOKIE_PASSWORD
+    ```
+3.  **Run**: `npm run dev`
+4.  **Dashboard**: http://localhost:3000/admin (Default login managed via `AdminUser` model).
+
+---
+
+## 🚀 API Quick Reference
+
+| Method | Endpoint | Description | Auth |
+| :--- | :--- | :--- | :--- |
+| POST | `/api/auth/register` | Register new end-user | Public |
+| POST | `/api/auth/login` | Login and get JWT | Public |
+| GET | `/api/auth/me` | Get current user data | JWT |
+| GET | `/api/offers` | List offers (example) | JWT + Role |
+
+---
+
+*This project is a Proof of Concept (POC) demonstrating modularity and security in Koa.js.*
