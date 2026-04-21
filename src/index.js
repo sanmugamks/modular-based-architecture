@@ -7,8 +7,22 @@ const logger = require('koa-logger');
 const coreModels = require('./models');
 const { sequelize } = coreModels;
 
+const helmet = require('koa-helmet');
+const cors = require('@koa/cors');
+const ratelimit = require('koa-ratelimit');
+
 const app = new Koa();
-app.keys = [process.env.COOKIE_PASSWORD || 'some-secret-password-longer-than-32-chars'];
+
+// 0. Enforce Critical Environment Variables
+const COOKIE_PASSWORD = process.env.COOKIE_PASSWORD;
+const JWT_SECRET = process.env.JWT_SECRET;
+
+if (!COOKIE_PASSWORD || !JWT_SECRET) {
+  console.error('[CRITICAL] Missing COOKIE_PASSWORD or JWT_SECRET in environment variables.');
+  process.exit(1);
+}
+
+app.keys = [COOKIE_PASSWORD];
 
 // --- Global Plugin Registry ---
 app.context.plugins = {};
@@ -29,7 +43,26 @@ async function start() {
 
   // --- Load API Router & Base Middlewares ---
   app.use(errorHandler); // Catch errors from all downstream middlewares/plugins
+  app.use(helmet());    // Security headers (XSS, Clickjacking, etc)
+  app.use(cors());      // Cross-Origin Resource Sharing
   app.use(logger());
+
+  // --- Rate Limiting ---
+  const db = new Map(); // Use memory store for POC; Redis recommended for Prod
+  app.use(ratelimit({
+    driver: 'memory',
+    db: db,
+    duration: 60000,
+    errorMessage: 'Too many requests, please try again later.',
+    id: (ctx) => ctx.ip,
+    headers: {
+      remaining: 'Rate-Limit-Remaining',
+      reset: 'Rate-Limit-Reset',
+      total: 'Rate-Limit-Total'
+    },
+    max: 100, // Limit each IP to 100 requests per minute
+    disableHeader: false,
+  }));
   const apiRouter = require('./routes/api');
   const { DataTypes } = require('./config/database');
 
@@ -107,7 +140,7 @@ async function start() {
         const result = await (plugin.default || plugin)(app, {
           config: mergedConfig,
           apiRouter,
-          auth: app.context.auth, // These will be assigned by stb-auth
+          auth: app.context.auth, 
           authorizeApi: app.context.authorizeApi,
           sequelize,
           DataTypes,
@@ -158,7 +191,7 @@ async function start() {
       }
       return null;
     },
-    cookiePassword: process.env.COOKIE_PASSWORD || 'some-secret-password-longer-than-32-chars',
+    cookiePassword: COOKIE_PASSWORD,
   });
 
   // Middleware order matters: routes

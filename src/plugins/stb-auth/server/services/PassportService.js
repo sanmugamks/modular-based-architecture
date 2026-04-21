@@ -11,7 +11,7 @@ module.exports = ({ models, config }) => {
 
   const opts = {
     jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-    secretOrKey: config.jwtSecret || process.env.JWT_SECRET || 'very-secure-jwt-secret-key'
+    secretOrKey: config.jwtSecret || process.env.JWT_SECRET
   };
 
   passport.use(

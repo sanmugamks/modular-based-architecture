@@ -4,32 +4,28 @@
  * Extension for my-plugin
  * This demonstrates how to overwrite or extend plugin controllers and services.
  */
-module.exports = (server) => {
-  console.log('[Extension: my-plugin] Applying overrides...');
+module.exports = ({ controllers, models, services, config }) => {
+  console.log('[Extension: stb-myaccount] Applying overrides...');
 
-  // Overwriting the NoteController factory
-  const originalNoteControllerFactory = server.controllers.NoteController;
+  const controller = controllers.offerController;
+  if (!controller) {
+    console.warn('[Extension: stb-myaccount] offerController not found for extension.');
+    return;
+  }
 
-  server.controllers.NoteController = (NoteService) => {
-    // Instantiate the original controller
-    const controller = originalNoteControllerFactory(NoteService);
+  // Keep the original findAll method
+  const originalFindAll = controller.findAll;
 
-    // Keep the original findAll method
-    const originalFindAll = controller.findAll;
+  // Overwrite findAll with custom logic
+  controller.findAll = async (ctx) => {
+    console.log('[Extension: stb-myaccount] Intercepted offerController.findAll - Adding project logic');
+    
+    // Add a custom header to the response
+    ctx.set('X-Plugin-Extension', 'Active (stb-myaccount)');
 
-    // Overwrite findAll with custom logic
-    controller.findAll = async (ctx) => {
-      console.log('[Extension: my-plugin] Intercepted NoteController.findAll - Adding custom logic');
-      
-      // Add a custom header to the response
-      ctx.set('X-Plugin-Extension', 'Active');
-
-      // Call the original implementation (or replace it entirely)
-      return originalFindAll(ctx);
-    };
-
-    return controller;
+    // Call the original implementation
+    return originalFindAll(ctx);
   };
 
-  console.log('[Extension: my-plugin] Overrides applied successfully.');
+  console.log('[Extension: stb-myaccount] Overrides applied successfully.');
 };

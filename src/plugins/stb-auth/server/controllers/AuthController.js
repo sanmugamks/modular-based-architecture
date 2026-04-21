@@ -8,13 +8,16 @@ const argon2 = require('argon2');
  */
 module.exports = ({ models, config }) => {
   const { ApiUser, ApiRole } = models;
-  const JWT_SECRET = config.jwtSecret || process.env.JWT_SECRET || 'very-secure-jwt-secret-key';
+  const JWT_SECRET = config.jwtSecret || process.env.JWT_SECRET; // No hardcoded fallback
 
   const controllers = {
     // POST /api/auth/register
     async register(ctx) {
       try {
-        const { email, password, contact_id, company_id, ApiRoleId } = ctx.request.body;
+        // --- Input Sanitization (Mass Assignment Protection) ---
+        // Only allow fields defined in the model schema
+        const sanitizedInput = ApiUser.sanitizeInput(ctx.request.body);
+        const { email, password, contact_id, company_id, ApiRoleId } = sanitizedInput;
 
         if (!email || !password) {
           ctx.status = 400;
