@@ -8,32 +8,39 @@ const server = require('./server');
  */
 const plugin = async (app, { config, apiRouter, sequelize, DataTypes, extension, auth, authorizeApi }) => {
   console.log(`[Plugin: stb-myaccount] Initializing...`);
-  console.log(`[Plugin: stb-myaccount] Config Received:`, JSON.stringify(config, null, 2));
 
   // 1. Initialize Models
   const models = server.models(sequelize, DataTypes);
 
-  // 2. Initialize Controllers via factories
-  const context = { models, config };
+  // 2. Initialize Services
+  const services = {};
+  if (server.services) {
+    for (const [name, factory] of Object.entries(server.services)) {
+      services[name] = factory({ models, config });
+    }
+  }
+
+  // 3. Initialize Controllers via factories
+  const context = { models, config, services };
   const controllers = {};
   for (const [name, factory] of Object.entries(server.controllers)) {
     controllers[name] = factory(context);
   }
 
-  // 3. Apply Extension if available
+  // 4. Apply Extension if available
   if (extension) {
-    extension({ controllers, models, config });
+    extension({ controllers, models, config, services });
   }
 
-  // 4. Register Routes
-  // Note: auth and authorizeApi are passed from the core loader via app.context
+  // 5. Register Routes
   server.routes(apiRouter, controllers, { auth, authorizeApi });
 
   console.log('[Plugin: stb-myaccount] Initialized successfully.');
 
-  // 5. Return metadata for AdminJS and model registry
+  // 6. Return metadata for AdminJS and model registry
   return {
     models,
+    services,
     adminResources: [
       {
         resource: models.Negotiator,

@@ -6,7 +6,7 @@
 module.exports = ({ models }) => {
   const { Applicant, ApiUser } = models;
 
-  return {
+  const controllers = {
     // GET /api/applicants
     async findAll(ctx) {
       try {
@@ -81,4 +81,6 @@ module.exports = ({ models }) => {
       }
     },
   };
+
+  return controllers;
 };

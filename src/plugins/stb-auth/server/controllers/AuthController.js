@@ -10,7 +10,7 @@ module.exports = ({ models, config }) => {
   const { ApiUser, ApiRole } = models;
   const JWT_SECRET = config.jwtSecret || process.env.JWT_SECRET || 'very-secure-jwt-secret-key';
 
-  return {
+  const controllers = {
     // POST /api/auth/register
     async register(ctx) {
       try {
@@ -115,4 +115,6 @@ module.exports = ({ models, config }) => {
       }
     }
   };
+
+  return controllers;
 };

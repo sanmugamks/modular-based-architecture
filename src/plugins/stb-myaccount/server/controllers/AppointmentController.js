@@ -6,7 +6,7 @@
 module.exports = ({ models }) => {
   const { Appointment, Property, Applicant, Negotiator } = models;
 
-  return {
+  const controllers = {
     // GET /api/appointments
     async findAll(ctx) {
       try {
@@ -89,4 +89,6 @@ module.exports = ({ models }) => {
       }
     },
   };
+
+  return controllers;
 };

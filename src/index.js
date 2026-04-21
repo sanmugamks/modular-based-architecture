@@ -117,6 +117,11 @@ async function start() {
         // Register models from plugins into our global registry
         if (result && result.models) {
           Object.assign(allModels, result.models);
+          app.context.plugins[pluginName].models = result.models;
+        }
+
+        if (result && result.services) {
+          app.context.plugins[pluginName].services = result.services;
         }
 
         if (result && result.adminResources) {

@@ -46,6 +46,7 @@ module.exports = async (app, { config, apiRouter, sequelize, DataTypes, extensio
   // 7. Return metadata for AdminJS and model registry
   return {
     models, 
+    services: { passport },
     middlewares: { auth, authorizeApi },
     adminResources: [
       // API Identity

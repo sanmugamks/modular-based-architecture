@@ -8,10 +8,12 @@ module.exports = ({ models, config }) => {
 
   console.log("config => in controller   ", config);
 
-  return {
+  const controllers = {
     // GET /api/offers
     async findAll(ctx) {
       try {
+        console.log('[OfferController] Accessing stb-auth services:', Object.keys(ctx.plugins['stb-auth'].services || {}));
+        
         const offers = await Offer.findAll({ include: [Property, Applicant, Negotiator] });
         ctx.body = { data: offers, count: offers.length };
       } catch (error) {
@@ -23,6 +25,11 @@ module.exports = ({ models, config }) => {
     // GET /api/offers/:id
     async findOne(ctx) {
       try {
+        console.log('[OfferController] calling findAll from findOne as example...');
+        // Example: calling another method in the same controller
+        // Note: we'd usually just call the logic, but this demonstrates the pattern
+        // await controllers.findAll(ctx); 
+        
         const offer = await Offer.findByPk(ctx.params.id, { include: [Property, Applicant, Negotiator] });
         if (!offer) {
           ctx.status = 404;
@@ -88,4 +95,6 @@ module.exports = ({ models, config }) => {
       }
     },
   };
+
+  return controllers;
 };

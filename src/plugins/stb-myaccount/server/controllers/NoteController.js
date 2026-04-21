@@ -1,5 +1,5 @@
 module.exports = (NoteService) => {
-  return {
+  const controllers = {
     async findAll(ctx) {
       try {
         const notes = await NoteService.findMany();
@@ -69,4 +69,6 @@ module.exports = (NoteService) => {
       }
     }
   };
+
+  return controllers;
 };
