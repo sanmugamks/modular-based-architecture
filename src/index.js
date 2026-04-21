@@ -43,7 +43,19 @@ async function start() {
 
   // --- Load API Router & Base Middlewares ---
   app.use(errorHandler); // Catch errors from all downstream middlewares/plugins
-  app.use(helmet());    // Security headers (XSS, Clickjacking, etc)
+  app.use(helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        fontSrc: ["'self'", "https://fonts.gstatic.com"],
+        imgSrc: ["'self'", "data:"],
+      },
+    },
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    crossOriginEmbedderPolicy: false,
+  }));
   app.use(cors());      // Cross-Origin Resource Sharing
   app.use(logger());
 
