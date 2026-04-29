@@ -214,8 +214,10 @@ async function start() {
   app.use(adminRouter.routes());
   app.use(adminRouter.allowedMethods());
 
-  // Ensure database tables exist (important for dynamic plugin models)
-  await sequelize.sync({ alter: true });
+  // Ensure database tables exist
+  // NOTE: sync({ alter: true }) can cause duplicate indexes in MySQL.
+  // Using sync() for stability; use migrations for schema changes.
+  await sequelize.sync();
 
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, async () => {
