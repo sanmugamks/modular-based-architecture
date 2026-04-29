@@ -1,6 +1,6 @@
 {
   "name": "@sanmugamks/modular-based-architecture",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "main": "src/index.js",
   "scripts": {
     "dev": "nodemon src/index.js",
