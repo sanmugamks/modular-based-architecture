@@ -16,7 +16,7 @@ module.exports = async (app, { config, apiRouter, sequelize, DataTypes, extensio
 
   // 2. Initialize Services (Passport)
   const passport = server.services.passportService({ models, config });
-  
+
   // 3. Initialize Shared Context Middlewares
   const auth = passport.authenticate('jwt', { session: false });
   const authorizeApi = server.middlewares.authorizeApi({ models });
@@ -45,14 +45,14 @@ module.exports = async (app, { config, apiRouter, sequelize, DataTypes, extensio
 
   // 7. Return metadata for AdminJS and model registry
   return {
-    models, 
+    models,
     services: { passport },
     middlewares: { auth, authorizeApi },
     adminResources: [
       // API Identity
       {
         resource: models.ApiUser,
-        options: { 
+        options: {
           navigation: { name: 'Identity', icon: 'User' },
           properties: {
             password: { isVisible: false },
@@ -99,29 +99,29 @@ module.exports = async (app, { config, apiRouter, sequelize, DataTypes, extensio
               },
             },
           },
-        }
+        },
       },
       {
         resource: models.ApiRole,
-        options: { navigation: { name: 'Identity', icon: 'Settings' } }
+        options: { navigation: { name: 'Identity', icon: 'Settings' } },
       },
       {
         resource: models.ApiPermission,
-        options: { navigation: { name: 'Identity', icon: 'Lock' } }
+        options: { navigation: { name: 'Identity', icon: 'Lock' } },
       },
       // Admin Identity
       {
         resource: models.AdminUser,
-        options: { navigation: { name: 'System', icon: 'Shield' } }
+        options: { navigation: { name: 'System', icon: 'Shield' } },
       },
       {
         resource: models.AdminRole,
-        options: { navigation: { name: 'System', icon: 'Users' } }
+        options: { navigation: { name: 'System', icon: 'Users' } },
       },
       {
         resource: models.AdminPermission,
-        options: { navigation: { name: 'System', icon: 'Lock' } }
-      }
-    ]
+        options: { navigation: { name: 'System', icon: 'Lock' } },
+      },
+    ],
   };
 };

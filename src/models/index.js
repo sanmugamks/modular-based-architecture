@@ -4,10 +4,10 @@ const { sequelize, DataTypes } = require('../config/database');
 
 /**
  * Core Model Binder
- * 
- * This file no longer defines business or identity models. 
+ *
+ * This file no longer defines business or identity models.
  * Those are now handled by specialized plugins (stb-auth, stb-myaccount, etc.).
- * 
+ *
  * It remains as the central point for shared associations and the database instance.
  */
 
@@ -22,19 +22,27 @@ const { sequelize, DataTypes } = require('../config/database');
 const associateModels = (allModels) => {
   const {
     // Identity (stb-auth)
-    ApiUser, ApiRole, ApiPermission,
-    AdminUser, AdminRole, AdminPermission,
+    ApiUser,
+    ApiRole,
+    ApiPermission,
+    AdminUser,
+    AdminRole,
+    AdminPermission,
     // Business (stb-myaccount)
-    Negotiator, Property, Applicant, Offer, Appointment,
+    Negotiator,
+    Property,
+    Applicant,
+    Offer,
+    Appointment,
     // Extensions (my-plugin)
-    Note
+    Note,
   } = allModels;
 
   const sanitize = require('../utils/sanitizer');
 
   // --- Global Model Decoration ---
   // Apply automatic sanitization to all models by overriding toJSON
-  Object.values(allModels).forEach(model => {
+  Object.values(allModels).forEach((model) => {
     if (model.prototype && typeof model.prototype.toJSON === 'function') {
       const originalToJSON = model.prototype.toJSON;
 
@@ -117,9 +125,8 @@ const associateModels = (allModels) => {
   }
 };
 
-
 module.exports = {
   sequelize,
   DataTypes,
-  associateModels
+  associateModels,
 };

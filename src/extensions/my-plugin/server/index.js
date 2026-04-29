@@ -19,7 +19,7 @@ module.exports = ({ controllers, models, services, config }) => {
   // Overwrite findAll with custom logic
   controller.findAll = async (ctx) => {
     console.log('[Extension: my-plugin] Intercepted NoteController.findAll - Adding custom logic');
-    
+
     // Add a custom header to the response
     ctx.set('X-Plugin-Extension', 'Active (my-plugin)');
 

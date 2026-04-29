@@ -1,0 +1,7 @@
+node_modules/
+.adminjs/
+dist/
+coverage/
+.env
+package-lock.json
+yarn.lock

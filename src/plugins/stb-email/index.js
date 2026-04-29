@@ -31,10 +31,10 @@ module.exports = async (app, { sequelize, DataTypes }) => {
           navigation: { name: 'Communications', icon: 'Mail' },
           properties: {
             body: { type: 'textarea' },
-            params: { type: 'json' }
-          }
-        }
-      }
-    ]
+            params: { type: 'json' },
+          },
+        },
+      },
+    ],
   };
 };

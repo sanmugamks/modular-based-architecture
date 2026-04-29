@@ -7,14 +7,14 @@ module.exports = (sequelize, DataTypes) => {
   const Negotiator = sequelize.define('Negotiator', {
     name: { type: DataTypes.STRING, allowNull: false },
     email: { type: DataTypes.STRING, allowNull: false, unique: true },
-    crm_id: { type: DataTypes.STRING }
+    crm_id: { type: DataTypes.STRING },
   });
 
   const Property = sequelize.define('Property', {
     title: { type: DataTypes.STRING, allowNull: false },
     price: { type: DataTypes.FLOAT },
     status: { type: DataTypes.STRING, defaultValue: 'ToLet' },
-    crm_id: { type: DataTypes.STRING }
+    crm_id: { type: DataTypes.STRING },
   });
 
   const Applicant = sequelize.define('Applicant', {
@@ -44,6 +44,6 @@ module.exports = (sequelize, DataTypes) => {
     Property,
     Applicant,
     Offer,
-    Appointment
+    Appointment,
   };
 };

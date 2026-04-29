@@ -12,26 +12,26 @@ async function seed() {
   try {
     console.log('Connecting to database...');
     await sequelize.authenticate();
-    
+
     // Initialize plugin models for seeding context
     const authModels = authModelsFactory(sequelize, DataTypes);
     const myaccountModels = myaccountModelsFactory(sequelize, DataTypes);
-    
+
     // Handle the object-of-factories pattern in my-plugin
     const mypluginModels = {};
     for (const [name, factory] of Object.entries(mypluginModelsObj)) {
       mypluginModels[name] = factory(sequelize, DataTypes);
     }
-    
+
     const EmailTemplate = emailModelsFactory(sequelize, DataTypes);
-    
-    const allModels = { 
-      ...authModels, 
-      ...myaccountModels, 
-      ...mypluginModels, 
-      EmailTemplate 
+
+    const allModels = {
+      ...authModels,
+      ...myaccountModels,
+      ...mypluginModels,
+      EmailTemplate,
     };
-    
+
     // Run late-binding associations
     associateModels(allModels);
 
@@ -47,8 +47,10 @@ async function seed() {
     const adminRole = await AdminRole.create({ name: 'SuperAdmin' });
 
     console.log('Creating All Permissions...');
-    await AdminPermission.create({ 
-      action: 'ALL', endpoint: '/admin/*', AdminRoleId: adminRole.id 
+    await AdminPermission.create({
+      action: 'ALL',
+      endpoint: '/admin/*',
+      AdminRoleId: adminRole.id,
     });
 
     console.log('Creating Root User...');
@@ -56,7 +58,7 @@ async function seed() {
     await AdminUser.create({
       email: 'admin@starberry.tv',
       password: hashedPassword,
-      AdminRoleId: adminRole.id
+      AdminRoleId: adminRole.id,
     });
 
     console.log('Seeding Email Templates...');
@@ -65,7 +67,7 @@ async function seed() {
       slug: 'welcome-email',
       subject: 'Welcome to MyAccount!',
       body: 'Hello!\n\nYour account has been successfully created for email: <%= email %>.\n\nBest regards,\nThe Team',
-      params: { email: 'User email address' }
+      params: { email: 'User email address' },
     });
 
     await EmailTemplate.create({
@@ -73,13 +75,13 @@ async function seed() {
       slug: 'account-update',
       subject: 'Account Details Updated',
       body: 'Hello,\n\nThis is a confirmation that your account details were recently updated for <%= email %>.',
-      params: { email: 'User email address' }
+      params: { email: 'User email address' },
     });
 
     console.log('\nSeeding complete! Admin account created and email templates initialized.');
     console.log('Email: admin@starberry.tv');
     console.log('Password: admin123\n');
-  } catch(error) {
+  } catch (error) {
     console.error('Seeding blocked due to error:', error);
   } finally {
     process.exit();

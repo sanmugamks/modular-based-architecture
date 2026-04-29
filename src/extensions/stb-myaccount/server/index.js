@@ -18,8 +18,10 @@ module.exports = ({ controllers, models, services, config }) => {
 
   // Overwrite findAll with custom logic
   controller.findAll = async (ctx) => {
-    console.log('[Extension: stb-myaccount] Intercepted offerController.findAll - Adding project logic');
-    
+    console.log(
+      '[Extension: stb-myaccount] Intercepted offerController.findAll - Adding project logic'
+    );
+
     // Add a custom header to the response
     ctx.set('X-Plugin-Extension', 'Active (stb-myaccount)');
 

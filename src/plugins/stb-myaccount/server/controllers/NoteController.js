@@ -67,7 +67,7 @@ module.exports = (NoteService) => {
         ctx.status = 500;
         ctx.body = { error: err.message };
       }
-    }
+    },
   };
 
   return controllers;

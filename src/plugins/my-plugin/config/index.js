@@ -1,6 +1,6 @@
 module.exports = {
   default: {
-    message: 'Welcome to my-plugin'
+    message: 'Welcome to my-plugin',
   },
   validator() {},
 };

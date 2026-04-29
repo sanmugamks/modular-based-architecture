@@ -11,7 +11,7 @@ module.exports = ({ models, config }) => {
 
   const opts = {
     jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-    secretOrKey: config.jwtSecret || process.env.JWT_SECRET
+    secretOrKey: config.jwtSecret || process.env.JWT_SECRET,
   };
 
   passport.use(
@@ -20,7 +20,7 @@ module.exports = ({ models, config }) => {
       try {
         // Find the user and eager load their ApiRole
         const user = await ApiUser.findByPk(jwt_payload.id, {
-          include: [ApiRole]
+          include: [ApiRole],
         });
 
         if (user) {

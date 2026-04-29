@@ -27,7 +27,11 @@ class EmailService {
   async sendTemplate(slug, data = {}, models) {
     if (!models || !models.EmailTemplate) {
       console.warn(`[Email Service] EmailTemplate model not registered. Falling back to raw send.`);
-      return this.sendEmail({ to: data.email, subject: `Fallback: ${slug}`, text: JSON.stringify(data) });
+      return this.sendEmail({
+        to: data.email,
+        subject: `Fallback: ${slug}`,
+        text: JSON.stringify(data),
+      });
     }
 
     const template = await models.EmailTemplate.findOne({ where: { slug } });

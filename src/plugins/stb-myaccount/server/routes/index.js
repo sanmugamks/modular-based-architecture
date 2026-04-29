@@ -4,14 +4,14 @@
  * Routes for stb-myaccount plugin (Core Business Domain)
  */
 module.exports = (apiRouter, controllers, middlewares) => {
-  const { 
-    applicantController, 
-    appointmentController, 
-    negotiatorController, 
-    offerController, 
-    propertyController 
+  const {
+    applicantController,
+    appointmentController,
+    negotiatorController,
+    offerController,
+    propertyController,
   } = controllers;
-  
+
   const { auth, authorizeApi } = middlewares;
 
   // Negotiators

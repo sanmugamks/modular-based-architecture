@@ -9,7 +9,7 @@ const path = require('path');
  */
 module.exports = ({ models, config }) => {
   const { EmailTemplate } = models;
-  
+
   // Load the layout file once (could be cached better in production)
   const layoutPath = path.join(__dirname, '../templates/template.txt');
   let layout = '<%= body %>';
@@ -54,6 +54,6 @@ module.exports = ({ models, config }) => {
         console.error(`[stb-email] Failed to send template ${slug}:`, err.message);
         throw err;
       }
-    }
+    },
   };
 };

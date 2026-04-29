@@ -6,14 +6,17 @@
 module.exports = ({ models, config }) => {
   const { Offer, Property, Applicant, Negotiator } = models;
 
-  console.log("config => in controller   ", config);
+  console.log('config => in controller   ', config);
 
   const controllers = {
     // GET /api/offers
     async findAll(ctx) {
       try {
-        console.log('[OfferController] Accessing stb-auth services:', Object.keys(ctx.plugins['stb-auth'].services || {}));
-        
+        console.log(
+          '[OfferController] Accessing stb-auth services:',
+          Object.keys(ctx.plugins['stb-auth'].services || {})
+        );
+
         const offers = await Offer.findAll({ include: [Property, Applicant, Negotiator] });
         ctx.body = { data: offers, count: offers.length };
       } catch (error) {
@@ -28,9 +31,11 @@ module.exports = ({ models, config }) => {
         console.log('[OfferController] calling findAll from findOne as example...');
         // Example: calling another method in the same controller
         // Note: we'd usually just call the logic, but this demonstrates the pattern
-        // await controllers.findAll(ctx); 
-        
-        const offer = await Offer.findByPk(ctx.params.id, { include: [Property, Applicant, Negotiator] });
+        // await controllers.findAll(ctx);
+
+        const offer = await Offer.findByPk(ctx.params.id, {
+          include: [Property, Applicant, Negotiator],
+        });
         if (!offer) {
           ctx.status = 404;
           ctx.body = { error: 'Offer not found' };
@@ -46,13 +51,22 @@ module.exports = ({ models, config }) => {
     // POST /api/offers
     async create(ctx) {
       try {
-        const { crm_id, amount, status, date, PropertyId, ApplicantId, NegotiatorId } = ctx.request.body;
+        const { crm_id, amount, status, date, PropertyId, ApplicantId, NegotiatorId } =
+          ctx.request.body;
         if (!amount) {
           ctx.status = 400;
           ctx.body = { error: 'Amount is required' };
           return;
         }
-        const offer = await Offer.create({ crm_id, amount, status, date, PropertyId, ApplicantId, NegotiatorId });
+        const offer = await Offer.create({
+          crm_id,
+          amount,
+          status,
+          date,
+          PropertyId,
+          ApplicantId,
+          NegotiatorId,
+        });
         ctx.status = 201;
         ctx.body = { data: offer };
       } catch (error) {

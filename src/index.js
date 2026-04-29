@@ -43,38 +43,42 @@ async function start() {
 
   // --- Load API Router & Base Middlewares ---
   app.use(errorHandler); // Catch errors from all downstream middlewares/plugins
-  app.use(helmet({
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
-        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-        fontSrc: ["'self'", "https://fonts.gstatic.com"],
-        imgSrc: ["'self'", "data:"],
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+          styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+          fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+          imgSrc: ["'self'", 'data:'],
+        },
       },
-    },
-    crossOriginResourcePolicy: { policy: "cross-origin" },
-    crossOriginEmbedderPolicy: false,
-  }));
-  app.use(cors());      // Cross-Origin Resource Sharing
+      crossOriginResourcePolicy: { policy: 'cross-origin' },
+      crossOriginEmbedderPolicy: false,
+    })
+  );
+  app.use(cors()); // Cross-Origin Resource Sharing
   app.use(logger());
 
   // --- Rate Limiting ---
   const db = new Map(); // Use memory store for POC; Redis recommended for Prod
-  app.use(ratelimit({
-    driver: 'memory',
-    db: db,
-    duration: 60000,
-    errorMessage: 'Too many requests, please try again later.',
-    id: (ctx) => ctx.ip,
-    headers: {
-      remaining: 'Rate-Limit-Remaining',
-      reset: 'Rate-Limit-Reset',
-      total: 'Rate-Limit-Total'
-    },
-    max: 100, // Limit each IP to 100 requests per minute
-    disableHeader: false,
-  }));
+  app.use(
+    ratelimit({
+      driver: 'memory',
+      db: db,
+      duration: 60000,
+      errorMessage: 'Too many requests, please try again later.',
+      id: (ctx) => ctx.ip,
+      headers: {
+        remaining: 'Rate-Limit-Remaining',
+        reset: 'Rate-Limit-Reset',
+        total: 'Rate-Limit-Total',
+      },
+      max: 100, // Limit each IP to 100 requests per minute
+      disableHeader: false,
+    })
+  );
   const apiRouter = require('./routes/api');
   const { DataTypes } = require('./config/database');
 
@@ -111,7 +115,7 @@ async function start() {
         // --- Merge Configurations ---
         const _ = require('lodash');
         let defaultConfig = plugin.defaultConfig || {};
-        
+
         // 1. Try to load from {pluginPath}/config/index.js
         let validator = null;
         try {
@@ -142,21 +146,21 @@ async function start() {
         }
 
         // 2. Register in Global Context BEFORE initialization so it's accessible during boot
-        app.context.plugins[pluginName] = { 
+        app.context.plugins[pluginName] = {
           config: mergedConfig,
           instance: plugin,
-          name: pluginName
+          name: pluginName,
         };
 
         // Plugins can now define models, routes, and admin resources
         const result = await (plugin.default || plugin)(app, {
           config: mergedConfig,
           apiRouter,
-          auth: app.context.auth, 
+          auth: app.context.auth,
           authorizeApi: app.context.authorizeApi,
           sequelize,
           DataTypes,
-          extension
+          extension,
         });
 
         // Register models from plugins into our global registry
@@ -183,9 +187,7 @@ async function start() {
   allModels.associateModels(allModels);
 
   const adminJs = new AdminJS({
-    resources: [
-      ...pluginResources
-    ],
+    resources: [...pluginResources],
     rootPath: '/admin',
   });
 
@@ -198,8 +200,8 @@ async function start() {
         return null;
       }
       const user = await allModels.AdminUser.findOne({ where: { email } });
-      if (user && await argon2.verify(user.password, password)) {
-        return user; 
+      if (user && (await argon2.verify(user.password, password))) {
+        return user;
       }
       return null;
     },

@@ -1,6 +1,6 @@
 /**
  * Plugin Configuration
- * 
+ *
  * To enable a plugin, add its directory name as a key with `enabled: true`.
  */
 module.exports = {

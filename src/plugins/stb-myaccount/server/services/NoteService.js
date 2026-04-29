@@ -23,6 +23,6 @@ module.exports = (Note) => {
       if (!note) return null;
       await note.destroy();
       return true;
-    }
+    },
   };
 };

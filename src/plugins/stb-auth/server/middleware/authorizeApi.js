@@ -24,12 +24,12 @@ module.exports = ({ models }) => {
     }
 
     const { method, path } = ctx;
-    
+
     const permissions = await ApiPermission.findAll({
-      where: { ApiRoleId: roleId }
+      where: { ApiRoleId: roleId },
     });
 
-    const hasAccess = permissions.some(p => {
+    const hasAccess = permissions.some((p) => {
       const endpointMatch = path.startsWith(p.endpoint);
       const actionMatch = p.action === '*' || p.action === method;
       return endpointMatch && actionMatch;
@@ -37,7 +37,9 @@ module.exports = ({ models }) => {
 
     if (!hasAccess) {
       ctx.status = 403;
-      ctx.body = { error: 'Forbidden: Your role does not have permission to access this endpoint.' };
+      ctx.body = {
+        error: 'Forbidden: Your role does not have permission to access this endpoint.',
+      };
       return;
     }
 

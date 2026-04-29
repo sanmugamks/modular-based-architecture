@@ -10,7 +10,9 @@ module.exports = ({ models }) => {
     // GET /api/appointments
     async findAll(ctx) {
       try {
-        const appointments = await Appointment.findAll({ include: [Property, Applicant, Negotiator] });
+        const appointments = await Appointment.findAll({
+          include: [Property, Applicant, Negotiator],
+        });
         ctx.body = { data: appointments, count: appointments.length };
       } catch (error) {
         ctx.status = 500;
@@ -21,7 +23,9 @@ module.exports = ({ models }) => {
     // GET /api/appointments/:id
     async findOne(ctx) {
       try {
-        const appointment = await Appointment.findByPk(ctx.params.id, { include: [Property, Applicant, Negotiator] });
+        const appointment = await Appointment.findByPk(ctx.params.id, {
+          include: [Property, Applicant, Negotiator],
+        });
         if (!appointment) {
           ctx.status = 404;
           ctx.body = { error: 'Appointment not found' };
@@ -37,15 +41,28 @@ module.exports = ({ models }) => {
     // POST /api/appointments
     async create(ctx) {
       try {
-        const { crm_id, appointment_type, appointment_starttime, appointment_endtime, PropertyId, ApplicantId, NegotiatorId } = ctx.request.body;
+        const {
+          crm_id,
+          appointment_type,
+          appointment_starttime,
+          appointment_endtime,
+          PropertyId,
+          ApplicantId,
+          NegotiatorId,
+        } = ctx.request.body;
         if (!appointment_starttime) {
           ctx.status = 400;
           ctx.body = { error: 'appointment_starttime is required' };
           return;
         }
         const appointment = await Appointment.create({
-          crm_id, appointment_type, appointment_starttime, appointment_endtime,
-          PropertyId, ApplicantId, NegotiatorId,
+          crm_id,
+          appointment_type,
+          appointment_starttime,
+          appointment_endtime,
+          PropertyId,
+          ApplicantId,
+          NegotiatorId,
         });
         ctx.status = 201;
         ctx.body = { data: appointment };

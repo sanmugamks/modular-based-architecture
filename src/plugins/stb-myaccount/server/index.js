@@ -6,7 +6,7 @@ const controllers = {
   negotiatorController: require('./controllers/NegotiatorController'),
   noteController: require('./controllers/NoteController'),
   offerController: require('./controllers/OfferController'),
-  propertyController: require('./controllers/PropertyController')
+  propertyController: require('./controllers/PropertyController'),
 };
 
 const models = require('./models');
@@ -17,5 +17,5 @@ module.exports = {
   controllers,
   models,
   routes,
-  services
+  services,
 };

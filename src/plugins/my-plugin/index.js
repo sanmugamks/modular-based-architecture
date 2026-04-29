@@ -7,7 +7,10 @@ const config = require('./config');
  * Main entry point for the plugin.
  * Following Strapi-like structure but adapted for Koa POC.
  */
-module.exports = async (app, { config: userConfig, apiRouter, auth, authorizeApi, sequelize, DataTypes, extension }) => {
+module.exports = async (
+  app,
+  { config: userConfig, apiRouter, auth, authorizeApi, sequelize, DataTypes, extension }
+) => {
   console.log(`[Plugin: my-plugin] Initializing Standardized Architecture...`);
 
   // 1. Setup Configuration
@@ -22,7 +25,8 @@ module.exports = async (app, { config: userConfig, apiRouter, auth, authorizeApi
   if (server.services) {
     for (const [name, factory] of Object.entries(server.services)) {
       // In this specific plugin, NoteService expects just the model as per its definition
-      services[name] = name === 'NoteService' ? factory(PluginNote) : factory({ models, config: pluginConfig });
+      services[name] =
+        name === 'NoteService' ? factory(PluginNote) : factory({ models, config: pluginConfig });
     }
   }
 
@@ -31,7 +35,10 @@ module.exports = async (app, { config: userConfig, apiRouter, auth, authorizeApi
   if (server.controllers) {
     for (const [name, factory] of Object.entries(server.controllers)) {
       // NoteController expects NoteService
-      controllers[name] = name === 'NoteController' ? factory(services.NoteService) : factory({ models, config: pluginConfig, services });
+      controllers[name] =
+        name === 'NoteController'
+          ? factory(services.NoteService)
+          : factory({ models, config: pluginConfig, services });
     }
   }
 
@@ -57,8 +64,8 @@ module.exports = async (app, { config: userConfig, apiRouter, auth, authorizeApi
         resource: PluginNote,
         options: {
           navigation: { name: 'Plugins', icon: 'Folder' },
-        }
-      }
-    ]
+        },
+      },
+    ],
   };
 };

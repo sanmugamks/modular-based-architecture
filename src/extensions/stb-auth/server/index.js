@@ -2,7 +2,7 @@
 
 /**
  * stb-auth Extension
- * 
+ *
  * Use this file to override or extend the stb-auth plugin logic.
  * The function receives the plugin's controllers, models, and config.
  */
@@ -12,7 +12,7 @@ module.exports = ({ controllers, models, config, services }) => {
   const { ApiUser } = models;
   const { DataTypes } = ApiUser.sequelize.Sequelize;
 
-  console.log("config => ", config);
+  console.log('config => ', config);
 
   // --- Schema Extensions ---
   // Add project-specific custom fields to the ApiUser model
@@ -32,12 +32,20 @@ module.exports = ({ controllers, models, config, services }) => {
 
   // 1. After Create User Hook
   ApiUser.addHook('afterCreate', async (user, options) => {
-    await emailService.sendTemplate('welcome-email', { email: user.email }, ApiUser.sequelize.models);
+    await emailService.sendTemplate(
+      'welcome-email',
+      { email: user.email },
+      ApiUser.sequelize.models
+    );
   });
 
   // 2. After Update User Hook
   ApiUser.addHook('afterUpdate', async (user, options) => {
-    await emailService.sendTemplate('account-update', { email: user.email }, ApiUser.sequelize.models);
+    await emailService.sendTemplate(
+      'account-update',
+      { email: user.email },
+      ApiUser.sequelize.models
+    );
   });
 
   console.log('[Extension: stb-auth] Lifecycle hooks and extensions registered successfully.');

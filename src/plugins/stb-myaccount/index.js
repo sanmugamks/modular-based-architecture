@@ -6,7 +6,10 @@ const server = require('./server');
  * Main entry point for stb-myaccount plugin.
  * Handles core business domain entities and logic.
  */
-const plugin = async (app, { config, apiRouter, sequelize, DataTypes, extension, auth, authorizeApi }) => {
+const plugin = async (
+  app,
+  { config, apiRouter, sequelize, DataTypes, extension, auth, authorizeApi }
+) => {
   console.log(`[Plugin: stb-myaccount] Initializing...`);
 
   // 1. Initialize Models
@@ -44,25 +47,25 @@ const plugin = async (app, { config, apiRouter, sequelize, DataTypes, extension,
     adminResources: [
       {
         resource: models.Negotiator,
-        options: { navigation: { name: 'Business', icon: 'Users' } }
+        options: { navigation: { name: 'Business', icon: 'Users' } },
       },
       {
         resource: models.Property,
-        options: { navigation: { name: 'Business', icon: 'Home' } }
+        options: { navigation: { name: 'Business', icon: 'Home' } },
       },
       {
         resource: models.Applicant,
-        options: { navigation: { name: 'Business', icon: 'UserPlus' } }
+        options: { navigation: { name: 'Business', icon: 'UserPlus' } },
       },
       {
         resource: models.Offer,
-        options: { navigation: { name: 'Business', icon: 'DollarSign' } }
+        options: { navigation: { name: 'Business', icon: 'DollarSign' } },
       },
       {
         resource: models.Appointment,
-        options: { navigation: { name: 'Business', icon: 'Calendar' } }
-      }
-    ]
+        options: { navigation: { name: 'Business', icon: 'Calendar' } },
+      },
+    ],
   };
 };
 

@@ -16,17 +16,17 @@ function runTest(name, config) {
 // 1. Valid Config
 runTest('Valid Config', {
   hasOffer: false,
-  propertyStatus: ['for rent']
+  propertyStatus: ['for rent'],
 });
 
 // 2. Invalid hasOffer (String instead of Boolean)
 runTest('Invalid hasOffer', {
-  hasOffer: "false",
-  propertyStatus: ['for sale']
+  hasOffer: 'false',
+  propertyStatus: ['for sale'],
 });
 
 // 3. Invalid propertyStatus (Object instead of Array)
 runTest('Invalid propertyStatus', {
   hasOffer: true,
-  propertyStatus: { status: 'for sale' }
+  propertyStatus: { status: 'for sale' },
 });

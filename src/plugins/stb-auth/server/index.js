@@ -4,10 +4,10 @@ const controllers = require('./controllers');
 const models = require('./models');
 const routes = require('./routes');
 const middlewares = {
-  authorizeApi: require('./middleware/authorizeApi')
+  authorizeApi: require('./middleware/authorizeApi'),
 };
 const services = {
-  passportService: require('./services/PassportService')
+  passportService: require('./services/PassportService'),
 };
 
 module.exports = {
@@ -15,5 +15,5 @@ module.exports = {
   models,
   routes,
   middlewares,
-  services
+  services,
 };

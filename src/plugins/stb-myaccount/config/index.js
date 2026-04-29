@@ -1,10 +1,10 @@
 module.exports = {
   default: {
     hasOffer: true,
-    propertyStatus: ["for sale"],
+    propertyStatus: ['for sale'],
     params: {
-      initialParam: 'default'
-    }
+      initialParam: 'default',
+    },
   },
   validator(config) {
     if (typeof config.hasOffer !== 'boolean') {

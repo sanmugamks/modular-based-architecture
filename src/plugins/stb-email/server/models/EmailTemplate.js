@@ -7,33 +7,33 @@ module.exports = (sequelize, DataTypes) => {
   const EmailTemplate = sequelize.define('EmailTemplate', {
     name: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: false,
     },
     slug: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true
+      unique: true,
     },
     subject: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: false,
     },
     body: {
       type: DataTypes.TEXT,
-      allowNull: false
+      allowNull: false,
     },
     params: {
       type: DataTypes.JSON, // Stores documentation of required params
-      allowNull: true
+      allowNull: true,
     },
     to: {
       type: DataTypes.STRING,
-      allowNull: true
+      allowNull: true,
     },
     cc: {
       type: DataTypes.STRING,
-      allowNull: true
-    }
+      allowNull: true,
+    },
   });
 
   return EmailTemplate;

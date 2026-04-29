@@ -7,7 +7,7 @@ module.exports = (sequelize, DataTypes) => {
   // --- API Users (Frontend) ---
   const ApiRole = sequelize.define('ApiRole', {
     name: { type: DataTypes.STRING, allowNull: false, unique: true },
-    description: DataTypes.STRING
+    description: DataTypes.STRING,
   });
 
   const ApiPermission = sequelize.define('ApiPermission', {
@@ -19,13 +19,13 @@ module.exports = (sequelize, DataTypes) => {
     email: { type: DataTypes.STRING, allowNull: false, unique: true },
     password: { type: DataTypes.STRING, allowNull: false, hidden: true }, // Hashed with Argon2
     contact_id: DataTypes.STRING,
-    company_id: DataTypes.STRING
+    company_id: DataTypes.STRING,
   });
 
   // --- Admin Users (Dashboard) ---
   const AdminRole = sequelize.define('AdminRole', {
     name: { type: DataTypes.STRING, allowNull: false, unique: true },
-    description: DataTypes.STRING
+    description: DataTypes.STRING,
   });
 
   const AdminPermission = sequelize.define('AdminPermission', {
@@ -35,7 +35,7 @@ module.exports = (sequelize, DataTypes) => {
 
   const AdminUser = sequelize.define('AdminUser', {
     email: { type: DataTypes.STRING, allowNull: false, unique: true },
-    password: { type: DataTypes.STRING, allowNull: false, hidden: true }
+    password: { type: DataTypes.STRING, allowNull: false, hidden: true },
   });
 
   // ============================
@@ -60,6 +60,6 @@ module.exports = (sequelize, DataTypes) => {
     ApiPermission,
     AdminUser,
     AdminRole,
-    AdminPermission
+    AdminPermission,
   };
 };

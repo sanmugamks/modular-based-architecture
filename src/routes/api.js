@@ -8,20 +8,22 @@ router.use(koaBody({ multipart: true }));
 const ratelimit = require('koa-ratelimit');
 const rateLimitDb = new Map();
 
-router.use(ratelimit({
-  driver: 'memory',
-  db: rateLimitDb,
-  duration: 60000, // 1 minute
-  errorMessage: 'Too many requests, please try again later',
-  id: (ctx) => ctx.ip,
-  headers: {
-    remaining: 'Rate-Limit-Remaining',
-    reset: 'Rate-Limit-Reset',
-    total: 'Rate-Limit-Total'
-  },
-  max: 100, // max requests per minute per IP
-  disableHeader: false
-}));
+router.use(
+  ratelimit({
+    driver: 'memory',
+    db: rateLimitDb,
+    duration: 60000, // 1 minute
+    errorMessage: 'Too many requests, please try again later',
+    id: (ctx) => ctx.ip,
+    headers: {
+      remaining: 'Rate-Limit-Remaining',
+      reset: 'Rate-Limit-Reset',
+      total: 'Rate-Limit-Total',
+    },
+    max: 100, // max requests per minute per IP
+    disableHeader: false,
+  })
+);
 
 // ============================
 // Runtime Auth Proxies
@@ -55,7 +57,7 @@ router.get('/health', (ctx) => {
 });
 
 // ============================
-// NOTE: Core Business Routes (Negotiators, Properties, etc.) 
+// NOTE: Core Business Routes (Negotiators, Properties, etc.)
 // have been moved to the 'stb-myaccount' plugin.
 // Auth routes have been moved to the 'stb-auth' plugin.
 // ============================
